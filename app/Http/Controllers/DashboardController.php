@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
-class Dashboard extends Controller
+class DashboardController extends Controller
 {
     public function dashboard() {
         if(Auth::check()) {

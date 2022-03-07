@@ -19,5 +19,6 @@ Route::get('/','logincontroller@login');
 Route::post('login','logincontroller@checkLogin');
 Route::get('registration','RegistrationController@index');
 Route::post('registration','RegistrationController@storeUser');
-Route::get('dashboard','Dashboard@dashboard');
+Route::get('dashboard','DashboardController@dashboard');
 Route::get('logout', 'logincontroller@logout');
+Route::get('category', 'CategoryController@index');
