@@ -22,3 +22,5 @@ Route::post('registration','RegistrationController@storeUser');
 Route::get('dashboard','DashboardController@dashboard');
 Route::get('logout', 'logincontroller@logout');
 Route::get('category', 'CategoryController@index');
+Route::post('category', 'CategoryController@storeCategory');
+Route::get('category', 'CategoryController@edit');

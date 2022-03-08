@@ -1,4 +1,5 @@
 @include('includes.header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <body class="g-sidenav-show  bg-gray-200">
 
   @include('includes.sidebar')
@@ -44,7 +45,8 @@
           </div>
           <div class="card-body px-0 pb-2">
             <div class="table-responsive p-0">
-              <a href="{{ '/dashboard' }}" class="btn btn-lg btn-primary mx-3">Add</a>
+              <a href="#" class="btn btn-lg btn-primary mx-3" style="float: right" id="categoryadd">Add</a>
+              
               <table class="table align-items-center mb-0 text-center">
                 <thead>
                   <tr>
@@ -67,18 +69,21 @@
                       <p class="text-xs font-weight-bold mb-0">{{ $data->categorySlug }}</p>
                     </td>
                     <td>
-                      <p class="text-xs font-weight-bold mb-0">{{ $data->categoryImage }}</p>
+                      <img src="{{ $data->categoryImage }}" alt="preview image" style="max-height: 100px;max-width: 100px;">
+                      {{-- <p class="text-xs font-weight-bold mb-0">{{ $data->categoryImage }}</p> --}}
                     </td>
                     <td>
-                      <p class="text-xs font-weight-bold mb-0">{{ $data->categoryStatus }}</p>
+                      @if($data->categoryStatus == 1)
+                      <p class="text-xs font-weight-bold mb-0">Active</p>
+                      @else
+                      <p class="text-xs font-weight-bold mb-0">Inactive</p>
+                      @endif
                     </td>
                     <td>
                       <p class="text-xs font-weight-bold mb-0">{{ $data->created_at }}</p>
                     </td>
                     <td class="align-middle">
-                      <a href="javascript:;" class="text-success font-weight-bold text-xs" data-toggle="tooltip" data-original-title="Edit user">
-                        <i class="material-icons text-success me-2">edit</i>
-                      </a>
+                      <a href="javascript:void(0)" data-id="{{ $data->categorySlug }}" class="btn btn-success edit-category"><i class="material-icons">edit</i></a>
                     </td>
                   </tr>
                   @endforeach
@@ -94,4 +99,149 @@
    @include('includes/footer')
   </div>
 </main>
+{{-- modal --}}
+<div id="myModal" class="modal fade myModal" tabindex="-1">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title">Category</h5>
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <form role="form" id="categoryform" method="post" enctype="multipart/form-data" class="text-start categoryform" action="javascript:void(0)">
+          <div class="modal-body">
+                            <div class="alert alert-danger alert-dismissible text-white d-none" role="alert" id="msg_div">
+                              <span class="text-sm" id="res_message"></span>
+                              <button type="button" class="btn-close text-lg py-3 opacity-10" data-bs-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                              </button>
+                            </div> 
+
+            <div class="row">
+              <div class="col-12 my-3">
+                <div class="form-group">
+                  <input type="text" class="catid">
+                  <label>Name:</label>
+                  <input type="email" class="form-control" id="categoryName" placeholder="Name" name="categoryName">
+                </div>
+              </div>
+              <span class="errorMessage" role="categoryName"></span>
+              <div class="col-12 my-3">
+                <div class="form-group">
+                  <label>Image:</label><br/>
+                  <input type="file" class="form-control-file" id="categoryImage" name="categoryImage">
+                </div>
+                <div class="col-md-12">
+                  <img id="image_preview_container" src="{{ '/' }}backend/assets/img/category/image-preview.png"
+                      alt="preview image" style="max-height: 150px;">
+                </div>
+              </div>
+              <span class="errorMessage" role="categoryImage"></span>
+              <div class="col-12 my-3">
+                <div class="form-group">
+                  <label>Status</label><br/>
+                  <input type="checkbox" checked data-toggle="toggle" data-on="Active" data-off="inactive" data-width="100" name="categoryStatus" id="categoryStatus">
+                </div>
+              </div>
+              <span class="errorMessage" role="categoryStatus"></span>
+            </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary close" data-dismiss="modal">Cancel</button>
+              <button type="submit" id="categorybtn" class="btn btn-primary"><div class="spinner-border d-none" style="width: 1.3rem;height: 1.3rem"></div><span class="categoryspinner">Save</span></button>
+          </div>
+        </form>
+      </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function(){
+      $("#categoryadd").click(function(){
+          $("#myModal").modal('show');
+      });
+      $(".close").click(function(){
+          $("#myModal").modal('hide');
+      });
+  });
+</script>
+{{-- AJAX Insert --}}
+<script>
+  //-----------------
+$(document).ready(function(){
+
+    $('#categoryImage').change(function(){
+          
+          let reader = new FileReader();
+          reader.onload = (e) => { 
+            $('#image_preview_container').attr('src', e.target.result); 
+          }
+          reader.readAsDataURL(this.files[0]); 
+
+    });
+
+  $('#categorybtn').click(function(e){
+       e.preventDefault();
+
+
+      $('.categoryspinner').addClass('d-none');
+      $('.spinner-border').removeClass('d-none');
+        
+      $.ajaxSetup({
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+      });
+
+      var formData = new FormData($('.categoryform')[0]);
+
+      $('.errorMessage').html('')
+      $.ajax({
+      url: '/category',
+      method: 'post',
+      data: formData,
+      cache:false,
+      contentType: false,
+      processData: false,
+      success: function(response){
+         //------------------------
+         if (response.status == true) { // If success then redirect to login 
+          $('#msg_div').hide(); 
+          $(".myModal").modal('hide');
+          window.location = response.redirect_location;
+        }
+
+         if (response.status == 400) {
+          $(".myModal").modal('show');
+          $('.categoryspinner').removeClass('d-none');
+          $('.spinner-border').addClass('d-none'); 
+          var test = response.errors;
+          jQuery.each(test, function(key, value){
+            $("[role='" + key + "']").append("<small class='text-danger'>" + value + "</small>");
+          });
+         }else{
+            $(".myModal").modal('show');
+            $('.categoryspinner').removeClass('d-none');
+            $('.spinner-border').addClass('d-none');
+            $('#res_message').show();
+            $('#res_message').html(response.msg);
+            $('.name_error').html();
+            $('#msg_div').removeClass('d-none');
+ 
+            document.getElementById("loginform").reset(); 
+
+         //--------------------------
+         }
+      }});
+      
+      
+     });
+  });
+  //-----------------
+  </script>
+  <script>
+  $('.edit-category').click(function(e){
+       e.preventDefault();
+       var testid = $(this).data('id');
+  });       
+  </script>
+
 

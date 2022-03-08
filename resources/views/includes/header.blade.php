@@ -36,6 +36,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <!-- CSS Files -->
     <link id="pagestyle" href="{{url('/')}}/backend/assets/css/material-dashboard.css?v=3.0.0" rel="stylesheet" />
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
   </head>
 {{-- <a class="nav-link text-dark"> Name: {{ ucfirst(Auth()->user()->name) }} </a><br/>
 <a class="nav-link text-dark"> Email: {{ ucfirst(Auth()->user()->email) }} </a><br/>

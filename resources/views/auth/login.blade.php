@@ -120,7 +120,7 @@
          e.preventDefault();
   
   
-        $('.regspinner').addClass('d-none');
+        $('.loginspinner').addClass('d-none');
         $('.spinner-border').removeClass('d-none');
           
         $.ajaxSetup({
@@ -142,7 +142,7 @@
 
            if (response.status == 400) {
             
-            $('.regspinner').removeClass('d-none');
+            $('.loginspinner').removeClass('d-none');
             $('.spinner-border').addClass('d-none'); 
             var test = response.errors;
             jQuery.each(test, function(key, value){
@@ -150,7 +150,7 @@
             });
            }else{
   
-              $('.regspinner').removeClass('d-none');
+              $('.loginspinner').removeClass('d-none');
               $('.spinner-border').addClass('d-none');
               $('#res_message').show();
               $('#res_message').html(response.msg);
