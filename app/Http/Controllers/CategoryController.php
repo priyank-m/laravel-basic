@@ -26,55 +26,95 @@ class CategoryController extends Controller
 
     public function storeCategory(Request $request) {
  
-
-
-        $validator = Validator::make($request->all(),  [
+        $dataid = $request->id;
+        $dataImage = $request->categoryImage;
+        if(is_null($dataid)){
+           $validator = Validator::make($request->all(),  [
             'categoryName'              =>      'required',
             'categoryImage'             =>      'required|image|mimes:jpeg,png,jpg,svg',
-        ]);
-        if ($validator->fails())  
-        {
-            return response()->json([
-                'status' => 400,
-                'errors' => $validator->errors(),
-            ]); 
-
+            ]);
+        }else{
+            if(!empty($request->categoryImage)){
+                $validator = Validator::make($request->all(),  [
+                    'categoryName'              =>      'required',
+                    'categoryImage'             =>      'required|image|mimes:jpeg,png,jpg,svg',
+                    ]); 
+            }else{
+                $validator = Validator::make($request->all(),  [
+                    'categoryName'              =>      'required',
+                ]);   
+            }           
         }
-        
+        if ($validator->fails())  
+            {
+                return response()->json([
+                    'status' => 400,
+                    'errors' => $validator->errors(),
+                ]); 
+            }
+ 
         $categorystatuscheck = $request->categoryStatus == 'on' ? 1 : 0;
         $stringspcermv = str_replace(' ', '', $request->categoryName);
         $stringlower = strtolower($stringspcermv);
         $randomgnrt= substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"),0,4);
         $categoryslugs = $stringlower . '' . $randomgnrt;
-
-        $inputArray      =           array(
-            'categoryName'              =>      $request->categoryName,
-            'categoryImage'             =>      $request->categoryImage->move('backend/assets/img/category'),
-            'categoryStatus'            =>      $categorystatuscheck,
-            'categorySlug'              =>      $categoryslugs,
-        );
-
-        
-//         $categories = new Category();
-//         $categories->categoryName = $request->categoryName;
-//   //      $categories->categoryImage = $request->categoryImage->move('backend/assets/img/category');
-//         $categories->categoryStatus = $categorystatuscheck;
-//         $categories->categorySlug = $categoryslugs;
-//         $categories->save();
-
-        $category           =           Category::create($inputArray);
-
-        if ($category) {
+        if(is_null($dataid)){
+        $categories = new Category();
+        $categories->categorySlug = $categoryslugs;
+        }else{
+            $categories = Category::find($dataid); 
+        }
+        if(!empty($dataImage)){
+            $usersImage = ($categories->categoryImage);
+            if(\File::exists($usersImage)){
+                unlink($usersImage);
+            }
+            $categories->categoryImage = $request->categoryImage->move('backend/assets/img/category');
+            $categories->categoryName = $request->categoryName;
+            $categories->categoryStatus = $categorystatuscheck;       
+            $categories->save();  
+        }else{
+        $categories->categoryName = $request->categoryName;
+        $categories->categoryStatus = $categorystatuscheck;       
+        $categories->save();        
+        }
+        if ($categories) {
             return response()->json(["status"=>true,"redirect_location"=>url("category")]);
         }
 
         else {
             $arr = array('msg' => 'Whoops! Somting went wrong.', 'status' => false);
         }
-        return Response()->json($arr);
+        return Response()->json($arr);  
     }
 
-    public function edit($id){
-        
+    public function edit(Request $request){
+
+        //$data = array($request->slug);
+        $where = array('id' => $request->id);
+        $categoryedit  = Category::where($where)->first();
+
+        return \Response::json($categoryedit);
+
+    }
+
+    public function delete(Request $request){
+
+        //$data = array($request->slug);
+        $categorydelete = Category::find($request->id); 
+        $categorydelete->delete();
+        $usersImage = ($categorydelete->categoryImage);
+            if(\File::exists($usersImage)){
+                unlink($usersImage);
+            }
+
+        if ($categorydelete) {
+            return response()->json(["status"=>true,"redirect_location"=>url("category")]);
+        }
+        else {
+            $arr = array('msg' => 'Whoops! Somting went wrong.', 'status' => false);
+        }
+        return Response()->json($arr);
+
     }
 }

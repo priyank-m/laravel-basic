@@ -23,4 +23,5 @@ Route::get('dashboard','DashboardController@dashboard');
 Route::get('logout', 'logincontroller@logout');
 Route::get('category', 'CategoryController@index');
 Route::post('category', 'CategoryController@storeCategory');
-Route::get('category', 'CategoryController@edit');
+Route::get('category/edit', 'CategoryController@edit');
+Route::get('category/delete', 'CategoryController@delete');

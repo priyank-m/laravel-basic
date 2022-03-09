@@ -1,4 +1,66 @@
 @include('includes.header')
+<style>
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+  
+  .switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }
+  </style>
+  
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <body class="g-sidenav-show  bg-gray-200">
 
@@ -45,6 +107,12 @@
           </div>
           <div class="card-body px-0 pb-2">
             <div class="table-responsive p-0">
+              <div class="alert alert-danger alert-dismissible text-white d-none" role="alert" id="delete_div">
+                <span class="text-sm" id="delete_message"></span>
+                <button type="button" class="btn-close text-lg py-3 opacity-10" data-bs-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+              </div> 
               <a href="#" class="btn btn-lg btn-primary mx-3" style="float: right" id="categoryadd">Add</a>
               
               <table class="table align-items-center mb-0 text-center">
@@ -83,7 +151,8 @@
                       <p class="text-xs font-weight-bold mb-0">{{ $data->created_at }}</p>
                     </td>
                     <td class="align-middle">
-                      <a href="javascript:void(0)" data-id="{{ $data->categorySlug }}" class="btn btn-success edit-category"><i class="material-icons">edit</i></a>
+                      <a href="javascript:void(0)" data-id="{{ $data->id }}" class="btn btn-success edit-category"><i class="material-icons">edit</i></a>
+                      <a href="javascript:void(0)" data-id="{{ $data->id }}" class="btn btn-danger delete-category"><i class="material-icons">delete</i></a>
                     </td>
                   </tr>
                   @endforeach
@@ -119,9 +188,9 @@
             <div class="row">
               <div class="col-12 my-3">
                 <div class="form-group">
-                  <input type="text" class="catid">
+                  <input type="text"  hidden name="id" id="categorySlug">
                   <label>Name:</label>
-                  <input type="email" class="form-control" id="categoryName" placeholder="Name" name="categoryName">
+                  <input type="email" class="form-control categoryName" id="categoryName" placeholder="Name" name="categoryName">
                 </div>
               </div>
               <span class="errorMessage" role="categoryName"></span>
@@ -131,7 +200,7 @@
                   <input type="file" class="form-control-file" id="categoryImage" name="categoryImage">
                 </div>
                 <div class="col-md-12">
-                  <img id="image_preview_container" src="{{ '/' }}backend/assets/img/category/image-preview.png"
+                  <img id="image_preview_container" class="categoryImage" src="{{ '/' }}backend/assets/img/category/image-preview.png"
                       alt="preview image" style="max-height: 150px;">
                 </div>
               </div>
@@ -139,7 +208,10 @@
               <div class="col-12 my-3">
                 <div class="form-group">
                   <label>Status</label><br/>
-                  <input type="checkbox" checked data-toggle="toggle" data-on="Active" data-off="inactive" data-width="100" name="categoryStatus" id="categoryStatus">
+                    <label class="switch">
+                      <input type="checkbox" checked class="categoryStatus" name="categoryStatus" id="categoryStatus">
+                      <span class="slider round"></span>
+                    </label>
                 </div>
               </div>
               <span class="errorMessage" role="categoryStatus"></span>
@@ -240,8 +312,65 @@ $(document).ready(function(){
   <script>
   $('.edit-category').click(function(e){
        e.preventDefault();
-       var testid = $(this).data('id');
+
+       $.ajaxSetup({
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+      });
+
+       var id = $(this).data('id');
+       //alert(slug)
+       $(".myModal").modal('show');
+
+      $.ajax({
+      url: '/category/edit',
+      method: 'get',
+      data: {id: id},
+      success: function(response){
+         $(".categoryName").val(response.categoryName);
+         $(".categoryImage").attr("src",response.categoryImage);
+         $("#categorySlug").val(response.id);
+
+         if(response.categoryStatus == 0){
+          $('#categoryStatus').prop('checked', false);
+         }else{
+          $('#categoryStatus').prop('checked', true);
+
+         }
+      }});
+
   });       
   </script>
+    <script>
+      $('.delete-category').click(function(e){
+        if(confirm("Are you sure delete this category")){
+           e.preventDefault();
+    
+           $.ajaxSetup({
+            headers: {
+              'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+          });
+    
+           var id = $(this).data('id');
+    
+          $.ajax({
+          url: '/category/delete',
+          method: 'get',
+          data: {id: id},
+          success: function(response){
+
+            if (response.status == true) { // If success then redirect to login 
+              window.location = response.redirect_location;
+            }else{
+            $('#delete_div').removeClass('d-none');
+            $('#delete_message').show();
+            $('#delete_message').html(response.msg);
+            }
+          }});
+        }
+      });       
+      </script>
 
 
