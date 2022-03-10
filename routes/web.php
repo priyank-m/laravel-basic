@@ -25,3 +25,4 @@ Route::get('category', 'CategoryController@index');
 Route::post('category', 'CategoryController@storeCategory');
 Route::get('category/edit', 'CategoryController@edit');
 Route::get('category/delete', 'CategoryController@delete');
+Route::get('product', 'ProductController@index');
