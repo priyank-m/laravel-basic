@@ -1,3 +1,6 @@
+<?php 
+
+?>
 @include('includes.header')
 <style>
   .switch {
@@ -159,8 +162,8 @@
                       <p class="text-xs font-weight-bold mb-0">{{ $data->created_at }}</p>
                     </td>
                     <td class="align-middle">
-                      <a href="javascript:void(0)" data-id="{{ $data->id }}" class="btn btn-success edit-Product"><i class="material-icons">edit</i></a>
-                      <a href="javascript:void(0)" data-id="{{ $data->id }}" class="btn btn-danger delete-Product"><i class="material-icons">delete</i></a>
+                      <a href="javascript:void(0)" data-id="{{ $data->id }}" class="btn btn-success edit-product"><i class="material-icons">edit</i></a>
+                      <a href="javascript:void(0)" data-id="{{ $data->id }}" class="btn btn-danger delete-product"><i class="material-icons">delete</i></a>
                     </td>
                   </tr>
                   @endforeach
@@ -184,7 +187,7 @@
               <h5 class="modal-title">Product</h5>
               <button type="button" class="close" data-dismiss="modal">&times;</button>
           </div>
-          <form role="form" id="productform" method="post" enctype="multipart/form-data" class="text-start Productform" action="javascript:void(0)">
+          <form role="form" id="productform" method="post" enctype="multipart/form-data" class="text-start productform" action="javascript:void(0)">
           <div class="modal-body">
 
                 <div class="alert alert-danger alert-dismissible text-white d-none" role="alert" id="msg_div">
@@ -197,12 +200,31 @@
             <div class="row">
               <div class="col-12 my-3">
                 <div class="form-group">
-                  <input type="text"  hidden name="id" id="ProductSlug">
+                  <input type="text"  hidden name="id" id="Productid">
                   <label>Name:</label>
                   <input type="email" class="form-control productName" id="productName" placeholder="Name" name="productName">
                 </div>
               </div>
               <span class="errorMessage" role="productName"></span>
+              <div class="col-12 my-3">
+                <div class="form-group">
+                  <label>Category Name</label>
+                  <select name="categoryId" class="form-control selectpicker" data-style="btn btn-link" id="categoryId">
+                    <option value='0'>-- Select category --</option> 
+                    @foreach($categories as $category)
+                      <option value='{{ $category->id }}' {{$data->categoryId == $category->id ? "selected" : "" }}>{{ $category->categoryName }}</option>
+                    @endforeach
+                  </select>
+                </div>
+              </div>
+              <span class="errorMessage" role="categoryId"></span>
+              <div class="col-12 my-3">
+                <div class="form-group">
+                  <label>Product Description</label>
+                  <textarea name="productDescription" class="form-control productDescription" id="productDescription" rows="3"></textarea>
+                </div>
+              </div>
+              <span class="errorMessage" role="productDescription"></span>
               <div class="col-12 my-3">
                 <div class="form-group">
                   <label>Image:</label><br/>
@@ -218,17 +240,17 @@
                 <div class="form-group">
                   <label>Status</label><br/>
                     <label class="switch">
-                      <input type="checkbox" checked class="ProductStatus" name="ProductStatus" id="ProductStatus">
+                      <input type="checkbox" checked class="productStatus" name="productStatus" id="productStatus">
                       <span class="slider round"></span>
                     </label>
                 </div>
               </div>
-              <span class="errorMessage" role="ProductStatus"></span>
+              <span class="errorMessage" role="productStatus"></span>
             </div>
           </div>
           <div class="modal-footer">
               <button type="button" class="btn btn-secondary close" data-dismiss="modal">Cancel</button>
-              <button type="submit" id="Productbtn" class="btn btn-primary"><div class="spinner-border d-none" style="width: 1.3rem;height: 1.3rem"></div><span class="Productspinner">Save</span></button>
+              <button type="submit" id="productbtn" class="btn btn-primary"><div class="spinner-border d-none" style="width: 1.3rem;height: 1.3rem"></div><span class="productspinner">Save</span></button>
           </div>
         </form>
       </div>
@@ -236,7 +258,7 @@
 </div>
 <script>
   $(document).ready(function(){
-      $("#Productadd").click(function(){
+      $("#productadd").click(function(){
           $("#myModal").modal('show');
       });
       $(".close").click(function(){
@@ -244,12 +266,12 @@
       });
   });
 </script>
-{{-- AJAX Insert --}}
+{{-- Insert Data --}}
 <script>
   //-----------------
 $(document).ready(function(){
 
-    $('#ProductImage').change(function(){
+    $('#productImage').change(function(){
           
           let reader = new FileReader();
           reader.onload = (e) => { 
@@ -259,11 +281,11 @@ $(document).ready(function(){
 
     });
 
-  $('#Productbtn').click(function(e){
+  $('#productbtn').click(function(e){
        e.preventDefault();
 
 
-      $('.Productspinner').addClass('d-none');
+      $('.productspinner').addClass('d-none');
       $('.spinner-border').removeClass('d-none');
         
       $.ajaxSetup({
@@ -272,11 +294,11 @@ $(document).ready(function(){
         }
       });
 
-      var formData = new FormData($('.Productform')[0]);
+      var formData = new FormData($('.productform')[0]);
 
       $('.errorMessage').html('')
       $.ajax({
-      url: '/Product',
+      url: '/product',
       method: 'post',
       data: formData,
       cache:false,
@@ -292,7 +314,7 @@ $(document).ready(function(){
 
          if (response.status == 400) {
           $(".myModal").modal('show');
-          $('.Productspinner').removeClass('d-none');
+          $('.productspinner').removeClass('d-none');
           $('.spinner-border').addClass('d-none'); 
           var test = response.errors;
           jQuery.each(test, function(key, value){
@@ -300,7 +322,7 @@ $(document).ready(function(){
           });
          }else{
             $(".myModal").modal('show');
-            $('.Productspinner').removeClass('d-none');
+            $('.productspinner').removeClass('d-none');
             $('.spinner-border').addClass('d-none');
             $('#res_message').show();
             $('#res_message').html(response.msg);
@@ -318,8 +340,10 @@ $(document).ready(function(){
   });
   //-----------------
   </script>
+
+  {{-- Edit Data --}}
   <script>
-  $('.edit-Product').click(function(e){
+  $('.edit-product').click(function(e){
        e.preventDefault();
 
        $.ajaxSetup({
@@ -333,53 +357,56 @@ $(document).ready(function(){
        $(".myModal").modal('show');
 
       $.ajax({
-      url: '/Product/edit',
+      url: '/product/edit',
       method: 'get',
       data: {id: id},
       success: function(response){
-         $(".ProductName").val(response.ProductName);
-         $(".ProductImage").attr("src",response.ProductImage);
-         $("#ProductSlug").val(response.id);
+         $(".productName").val(response.productName);
+         $(".productDescription").val(response.productDescription);
+         $(".productImage").attr("src",response.productImage);
+         $("#productid").val(response.id);
 
-         if(response.ProductStatus == 0){
-          $('#ProductStatus').prop('checked', false);
+         if(response.productStatus == 0){
+          $('#productStatus').prop('checked', false);
          }else{
-          $('#ProductStatus').prop('checked', true);
+          $('#productStatus').prop('checked', true);
 
          }
       }});
 
   });       
   </script>
-    <script>
-      $('.delete-Product').click(function(e){
-        if(confirm("Are you sure delete this Product")){
-           e.preventDefault();
-    
-           $.ajaxSetup({
-            headers: {
-              'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-          });
-    
-           var id = $(this).data('id');
-    
-          $.ajax({
-          url: '/Product/delete',
-          method: 'get',
-          data: {id: id},
-          success: function(response){
 
-            if (response.status == true) { // If success then redirect to login 
-              window.location = response.redirect_location;
-            }else{
-            $('#delete_div').removeClass('d-none');
-            $('#delete_message').show();
-            $('#delete_message').html(response.msg);
-            }
-          }});
-        }
-      });       
-      </script>
+  {{-- Delete Data --}}
+  <script>
+    $('.delete-product').click(function(e){
+      if(confirm("Are you sure delete this Product")){
+          e.preventDefault();
+  
+          $.ajaxSetup({
+          headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+          }
+        });
+  
+          var id = $(this).data('id');
+  
+        $.ajax({
+        url: '/product/delete',
+        method: 'get',
+        data: {id: id},
+        success: function(response){
+
+          if (response.status == true) { // If success then redirect to login 
+            window.location = response.redirect_location;
+          }else{
+          $('#delete_div').removeClass('d-none');
+          $('#delete_message').show();
+          $('#delete_message').html(response.msg);
+          }
+        }});
+      }
+    });       
+    </script>
 
 
