@@ -114,7 +114,20 @@
                 </button>
               </div> 
               <a href="#" class="btn btn-lg btn-primary mx-3" style="float: right" id="categoryadd">Add</a>
-              
+              <div class="container">
+                <div class="row">
+                  <div class="col-4">
+                    <form role="form" id="categoryfilter" method="post" enctype="multipart/form-data" class="text-start categoryfilter" action="javascript:void(0)">
+                    <div class="form-group">
+                      <select name="categoryStatus" class="form-control categorystatusfilter" data-style="btn btn-link" id="categorystatusfilter">
+                        <option value=''>-- Select category status--</option>
+                        <option value='1' @if($status=='1') selected=selected @endif>Active</option>
+                        <option value='0' @if($status=='0') selected=selected @endif>Inactive</option>
+                      </select>  
+                    </div>
+                    </form>
+                  </div>
+                </div>
               <table class="table align-items-center mb-0 text-center">
                 <thead>
                   <tr>
@@ -200,7 +213,7 @@
                   <input type="file" class="form-control-file" id="categoryImage" name="categoryImage">
                 </div>
                 <div class="col-md-12">
-                  <img id="image_preview_container" class="categoryImage" src="{{ '/' }}backend/assets/img/category/image-preview.png"
+                  <img id="image_preview_container" class="categoryImage image_preview_container" src="{{ '/' }}backend/assets/img/category/image-preview.png"
                       alt="preview image" style="max-height: 150px;">
                 </div>
               </div>
@@ -229,6 +242,8 @@
   $(document).ready(function(){
       $("#categoryadd").click(function(){
           $("#myModal").modal('show');
+          $(".categoryform").trigger("reset");
+          $('.image_preview_container').attr('src', '{{ '/' }}backend/assets/img/category/image-preview.png'); 
       });
       $(".close").click(function(){
           $("#myModal").modal('hide');
@@ -248,6 +263,15 @@ $(document).ready(function(){
           }
           reader.readAsDataURL(this.files[0]); 
 
+    });
+
+    $('#categorystatusfilter').change(function(){
+        var statusfilter = $('.categorystatusfilter').val();
+        if(statusfilter == ''){ 
+          window.location.href="{{ url('/') }}/category";
+        }else{
+          window.location.href="{{ url('/') }}/category?s="+statusfilter;
+        }
     });
 
   $('#categorybtn').click(function(e){

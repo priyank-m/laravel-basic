@@ -1,6 +1,4 @@
-<?php 
 
-?>
 @include('includes.header')
 <style>
   .switch {
@@ -117,7 +115,21 @@
                 </button>
               </div> 
               <a href="#" class="btn btn-lg btn-primary mx-3" style="float: right" id="productadd">Add</a>
-              
+              <div class="container">
+                <div class="row">
+                  <div class="col-4">
+                    <form role="form" id="categoryfilter" method="post" enctype="multipart/form-data" class="text-start categoryfilter" action="javascript:void(0)">
+                      <div class="form-group">
+                        <select name="productStatus" class="form-control productstatusfilter" data-style="btn btn-link" id="productstatusfilter">
+                          <option value=''>-- Select product status--</option>
+                          <option value='1' @if($status=='1') selected=selected @endif>Active</option>
+                          <option value='0' @if($status=='0') selected=selected @endif>Inactive</option>
+                        </select>  
+                      </div>
+                      </form>
+                  </div>
+                </div>
+              </div>
               <table class="table align-items-center mb-0 text-center">
                 <thead>
                   <tr>
@@ -142,7 +154,7 @@
                       <p class="text-xs font-weight-bold mb-0">{{ $data->productDescription }}</p>
                     </td>
                     <td>
-                      <p class="text-xs font-weight-bold mb-0">{{ $data->categoryId }}</p>
+                      <p class="text-xs font-weight-bold mb-0">{{ $data->categoryName }}</p>
                     </td>
                     <td>
                       <p class="text-xs font-weight-bold mb-0">{{ $data->productSlug }}</p>
@@ -200,7 +212,7 @@
             <div class="row">
               <div class="col-12 my-3">
                 <div class="form-group">
-                  <input type="text"  hidden name="id" id="Productid">
+                  <input type="text"  hidden name="id" id="productid">
                   <label>Name:</label>
                   <input type="email" class="form-control productName" id="productName" placeholder="Name" name="productName">
                 </div>
@@ -210,9 +222,9 @@
                 <div class="form-group">
                   <label>Category Name</label>
                   <select name="categoryId" class="form-control selectpicker" data-style="btn btn-link" id="categoryId">
-                    <option value='0'>-- Select category --</option> 
+                    <option value=''>-- Select category --</option> 
                     @foreach($categories as $category)
-                      <option value='{{ $category->id }}' {{$data->categoryId == $category->id ? "selected" : "" }}>{{ $category->categoryName }}</option>
+                      <option value='{{ $category->id }}'>{{ $category->categoryName }}</option>
                     @endforeach
                   </select>
                 </div>
@@ -231,7 +243,7 @@
                   <input type="file" class="form-control-file" id="productImage" name="productImage">
                 </div>
                 <div class="col-md-12">
-                  <img id="image_preview_container" class="productImage" src="{{ '/' }}backend/assets/img/product/image-preview.png"
+                  <img id="image_preview_container" class="productImage image_preview_container" src="{{ '/' }}backend/assets/img/product/image-preview.png"
                       alt="preview image" style="max-height: 150px;">
                 </div>
               </div>
@@ -260,6 +272,8 @@
   $(document).ready(function(){
       $("#productadd").click(function(){
           $("#myModal").modal('show');
+          $(".productform").trigger("reset");
+          $('.image_preview_container').attr('src', '{{ '/' }}backend/assets/img/product/image-preview.png'); 
       });
       $(".close").click(function(){
           $("#myModal").modal('hide');
@@ -279,6 +293,16 @@ $(document).ready(function(){
           }
           reader.readAsDataURL(this.files[0]); 
 
+    });
+
+
+    $('#productstatusfilter').change(function(){
+        var statusfilter = $('.productstatusfilter').val();
+        if(statusfilter == ''){ 
+          window.location.href="{{ url('/') }}/product";
+        }else{
+          window.location.href="{{ url('/') }}/product?s="+statusfilter;
+        }
     });
 
   $('#productbtn').click(function(e){
@@ -365,6 +389,7 @@ $(document).ready(function(){
          $(".productDescription").val(response.productDescription);
          $(".productImage").attr("src",response.productImage);
          $("#productid").val(response.id);
+         $('#categoryId').val(response.categoryId);
 
          if(response.productStatus == 0){
           $('#productStatus').prop('checked', false);

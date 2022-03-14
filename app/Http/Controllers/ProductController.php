@@ -15,10 +15,19 @@ use Illuminate\Support\Facades\Session;
 
 class ProductController extends Controller
 {
-    public function index() {
+    public function index(Request $request) {
         if(Auth::check()) {
-            $data['results'] = Product::all();
-            $data['categories'] = Category::all();
+            $status =  $request->s != '' ? $request->s : '';
+            $data['status'] = $status;
+            $data['results'] = Product::join('categories','products.categoryId','=','categories.id')
+            ->where(function ($query) use ($status) {
+                if($status != ''){
+                    $query->where('products.productStatus',$status);
+                }
+            })
+            ->select('products.*','categories.categoryName')
+            ->orderBy('products.id', 'desc')->get();
+            $data['categories'] = Category::where('categoryStatus', 1)->orderBy('id', 'desc')->get();
              return view('product', $data);
             //  print_r($results);
             //  exit();
@@ -38,7 +47,7 @@ class ProductController extends Controller
             'productImage'             =>      'required|image|mimes:jpeg,png,jpg,svg',
             ]);
         }else{
-            if(!empty($request->productImage)){
+            if(!empty($dataImage)){
                 $validator = Validator::make($request->all(),  [
                     'productName'              =>      'required',
                     'categoryId'               =>      'required',
@@ -71,7 +80,7 @@ class ProductController extends Controller
         $products->productSlug = $productslugs;
         }else{
             $products = product::find($dataid); 
-            return view('product', $products);
+            // return view('product', $products);
         }
         if(!empty($dataImage)){
             $productImages = ($products->productImage);
@@ -105,7 +114,7 @@ class ProductController extends Controller
 
         //$data = array($request->slug);
         $where = array('id' => $request->id);
-        $productedit  = product::where($where)->first();
+        $productedit  = Product::where($where)->first();
 
         return \Response::json($productedit);
 
@@ -114,7 +123,7 @@ class ProductController extends Controller
     public function delete(Request $request){
 
         //$data = array($request->slug);
-        $productdelete = product::find($request->id); 
+        $productdelete = Product::find($request->id); 
         $productdelete->delete();
         $productImages = ($productdelete->productImage);
             if(\File::exists($productImages)){

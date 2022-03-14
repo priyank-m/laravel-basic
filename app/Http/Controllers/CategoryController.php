@@ -14,14 +14,22 @@ use Illuminate\Support\Facades\Session;
 
 class CategoryController extends Controller
 {
-    public function index() {
+    public function index(Request $request) {
         if(Auth::check()) {
-             $results = Category::all();
-             return view('category', compact('results'));
+            $status =  $request->s != '' ? $request->s : '';
+        
+            
+            $results = Category::where(function ($query) use ($status) {
+                if($status != ''){
+                    $query->where('categoryStatus',$status);
+                }
+            })->get();
+
+             return view('category', compact('results','status'));
             //  print_r($results);
             //  exit();
         }
-        return redirect("/")->with('success', 'Logout successfully');;
+        return redirect("/")->with('success', 'Logout successfully');
     }
 
     public function storeCategory(Request $request) {
