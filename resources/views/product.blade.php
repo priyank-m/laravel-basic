@@ -116,19 +116,29 @@
               </div> 
               <a href="#" class="btn btn-lg btn-primary mx-3" style="float: right" id="productadd">Add</a>
               <div class="container">
+                <form role="form" id="categoryfilter" method="post" enctype="multipart/form-data" class="text-start categoryfilter" action="javascript:void(0)">
                 <div class="row">
                   <div class="col-4">
-                    <form role="form" id="categoryfilter" method="post" enctype="multipart/form-data" class="text-start categoryfilter" action="javascript:void(0)">
                       <div class="form-group">
-                        <select name="productStatus" class="form-control productstatusfilter" data-style="btn btn-link" id="productstatusfilter">
-                          <option value=''>-- Select product status--</option>
+                        <select name="productStatus" class="form-control productstatusfilter filters" data-style="btn btn-link" id="productstatusfilter">
+                          <option value=''>-- Select Product Status--</option>
                           <option value='1' @if($status=='1') selected=selected @endif>Active</option>
                           <option value='0' @if($status=='0') selected=selected @endif>Inactive</option>
                         </select>  
                       </div>
-                      </form>
                   </div>
+                  <div class="col-4">
+                    <div class="form-group">
+                      <select name="categoryId" class="form-control categoryfilters filters" data-style="btn btn-link" id="categoryfilters">
+                        <option value=''>-- Select Category--</option>
+                        @foreach($categoriesfilters as $categoriesfilter)
+                        <option value='{{ $categoriesfilter->categoryId }}' {{ $category ==  $categoriesfilter->categoryId ? "selected":""}}>{{ $categoriesfilter->categoryName }}</option>
+                      @endforeach
+                      </select>  
+                    </div>
                 </div>
+                </div>
+              </form>
               </div>
               <table class="table align-items-center mb-0 text-center">
                 <thead>
@@ -296,12 +306,14 @@ $(document).ready(function(){
     });
 
 
-    $('#productstatusfilter').change(function(){
+    $('.filters').change(function(){
         var statusfilter = $('.productstatusfilter').val();
-        if(statusfilter == ''){ 
+        var categoryfilters = $('.categoryfilters').val();
+        //console.log(categoryfilters);
+        if(statusfilter == '' && categoryfilters== ''){ 
           window.location.href="{{ url('/') }}/product";
         }else{
-          window.location.href="{{ url('/') }}/product?s="+statusfilter;
+          window.location.href="{{ url('/') }}/product?s="+statusfilter+"&c="+categoryfilters;
         }
     });
 

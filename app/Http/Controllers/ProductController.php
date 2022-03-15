@@ -18,16 +18,21 @@ class ProductController extends Controller
     public function index(Request $request) {
         if(Auth::check()) {
             $status =  $request->s != '' ? $request->s : '';
+            $category =  $request->c!= '' ? $request->c : '';
             $data['status'] = $status;
+            $data['category'] = $category;
             $data['results'] = Product::join('categories','products.categoryId','=','categories.id')
-            ->where(function ($query) use ($status) {
+            ->where(function ($query) use ($status,$category) {
                 if($status != ''){
                     $query->where('products.productStatus',$status);
+                }if($category != ''){
+                    $query->where('products.categoryId',$category);
                 }
             })
             ->select('products.*','categories.categoryName')
             ->orderBy('products.id', 'desc')->get();
             $data['categories'] = Category::where('categoryStatus', 1)->orderBy('id', 'desc')->get();
+            $data['categoriesfilters'] = Product::join('categories','products.categoryId','=','categories.id')->select('products.categoryId','categories.categoryName')->distinct()->get();
              return view('product', $data);
             //  print_r($results);
             //  exit();
