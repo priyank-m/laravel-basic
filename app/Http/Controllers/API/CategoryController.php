@@ -21,13 +21,13 @@ class CategoryController extends Controller
        
         if(Auth::check()) {
             $status =  $request->s != '' ? $request->s : '';
-        
+            $userId = Auth::id();
             //$status = $data['status'];
-            $results = Category::where(function ($query) use ($status) {
+            $results = Category::select('*',\DB::raw('CONCAT("'.env('APP_URL').'", categoryImage) as categoryImage'))->where(function ($query) use ($status) {
                 if($status != ''){
                     $query->where('categoryStatus',$status);
                 }
-            })->orderBy('id', 'desc')->get();
+            })->where('userid',$userId)->orderBy('id', 'desc')->get();
 
             if($results){
                 return response()->json(["code"=>200,"data"=>$results,"message"=>"Record Found"]);
@@ -42,16 +42,17 @@ class CategoryController extends Controller
  
         $dataid = $request->id;
         $dataImage = $request->categoryImage;
+        $userId = Auth::id();
 
         if(is_null($dataid)){
            $validator = Validator::make($request->all(),  [
-            'categoryName'              =>      'required',
+            'categoryName'              =>      'required|unique:categories',
             'categoryImage'             =>      'required|image|mimes:jpeg,png,jpg,svg',
             ]);
         }else{
             if(!empty($request->categoryImage)){
                 $validator = Validator::make($request->all(),  [
-                    'categoryName'              =>      'required',
+                    'categoryName'              =>      'required|unique:categories',
                     'categoryImage'             =>      'required|image|mimes:jpeg,png,jpg,svg',
                     ]); 
             }else{
@@ -63,7 +64,7 @@ class CategoryController extends Controller
         if ($validator->fails())  
             {
                 return response()->json([
-                    'status' => 400,
+                    'code' => 200,
                     'errors' => $validator->errors(),
                 ]); 
             }
@@ -76,8 +77,15 @@ class CategoryController extends Controller
         if(is_null($dataid)){
         $categories = new Category();
         $categories->categorySlug = $categoryslugs;
+        $categories->userId = $userId;
         }else{
-            $categories = Category::find($dataid); 
+            $categories = Category::where('userId',$userId)->find($dataid);
+            if(empty($categories)){
+                return response()->json(["code"=>200,"message"=>"unauthorized person not allowed"]);
+            }else{ 
+            $categories->categorySlug = $categoryslugs;
+            $categories->userId = $userId;
+            }
         }
         if(!empty($dataImage)){
             $usersImage = ($categories->categoryImage);
@@ -93,14 +101,46 @@ class CategoryController extends Controller
         $categories->categoryStatus = $categorystatuscheck;       
         $categories->save();        
         }
-        if ($categories) {
-            return response()->json(["status"=>true,"redirect_location"=>url("category")]);
+        if($categories){
+            return response()->json(["code"=>200,"message"=>"Sucessfully"]);
+        }else{
+            return response()->json(["code"=>200,"message"=>"Record Not Found"]);
         }
+        return response()->json(["code"=>401,"message"=>"unauthorized person not allowed"]);
+    }
 
-        else {
-            $arr = array('msg' => 'Whoops! Somting went wrong.', 'status' => false);
+    public function edit(Request $request){
+
+        //$data = array($request->slug);
+        $where = array('id' => $request->id);
+        $categoryedit  = Category::where($where)->first();
+        if($categoryedit){
+            return response()->json(["code"=>200,"data"=>$categoryedit,"message"=>"Record Found"]);
+        }else{
+            return response()->json(["code"=>200,"message"=>"Record Not Found"]);
         }
-        return Response()->json($arr);  
+        return response()->json(["code"=>401,"message"=>"unauthorized person not allowed"]);
+
+    }
+
+    public function delete(Request $request){
+
+        //$data = array($request->slug);
+        $categorydelete = Category::find($request->id); 
+        $categorydelete->delete();
+        $usersImage = ($categorydelete->categoryImage);
+            if(\File::exists($usersImage)){
+                unlink($usersImage);
+            }
+
+        if ($categorydelete) {
+            return response()->json(["code"=>200,"message"=>"Deleted successfully"]);
+        }
+        else {
+            return response()->json(["code"=>200,"message"=>"Whoops! Somting went wrong"]);
+        }
+        return response()->json(["code"=>401,"message"=>"unauthorized person not allowed"]);
+
     }
 
     
