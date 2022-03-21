@@ -29,3 +29,4 @@ Route::get('product', 'ProductController@index');
 Route::post('product', 'ProductController@storeProduct');
 Route::get('product/edit', 'ProductController@edit');
 Route::get('product/delete', 'ProductController@delete');
+Route::get('product/delete', 'ProductController@delete');

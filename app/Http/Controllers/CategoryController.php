@@ -11,9 +11,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use App\Traits\SlugTrait;
 
 class CategoryController extends Controller
 {
+
+    use SlugTrait;
+
     public function index(Request $request) {
         if(Auth::check()) {
             $status =  $request->s != '' ? $request->s : '';
@@ -62,10 +66,10 @@ class CategoryController extends Controller
             }
  
         $categorystatuscheck = $request->categoryStatus == 'on' ? 1 : 0;
-        $stringspcermv = str_replace(' ', '', $request->categoryName);
-        $stringlower = strtolower($stringspcermv);
-        $randomgnrt= substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"),0,4);
-        $categoryslugs = $stringlower . '' . $randomgnrt;
+        // $stringspcermv = str_replace(' ', '', $request->categoryName);
+        // $stringlower = strtolower($stringspcermv);
+        // $randomgnrt= substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"),0,4);
+        $categoryslugs = $this->verifyAndStoreSlug(array('name'=>$request->categoryName));
         if(is_null($dataid)){
         $categories = new Category();
         $categories->categorySlug = $categoryslugs;

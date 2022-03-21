@@ -12,9 +12,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use App\Traits\SlugTrait;
 
 class ProductController extends Controller
 {
+
+    use SlugTrait;
+
     public function index(Request $request) {
         if(Auth::check()) {
             $status =  $request->s != '' ? $request->s : '';
@@ -76,10 +80,11 @@ class ProductController extends Controller
             }
  
         $productstatuscheck = $request->productStatus == 'on' ? 1 : 0;
-        $stringspcermv = str_replace(' ', '', $request->productName);
-        $stringlower = strtolower($stringspcermv);
-        $randomgnrt= substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"),0,4);
-        $productslugs = $stringlower . '' . $randomgnrt;
+        // $stringspcermv = str_replace(' ', '', $request->productName);
+        // $stringlower = strtolower($stringspcermv);
+        // $randomgnrt= substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"),0,4);
+        $productslugs = $this->verifyAndStoreSlug(array('name'=>$request->productName));
+  
         if(is_null($dataid)){
         $products = new product();
         $products->productSlug = $productslugs;
